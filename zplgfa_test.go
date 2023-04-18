@@ -63,7 +63,7 @@ func Test_ConvertToZPL(t *testing.T) {
 		}
 
 		// flatten image
-		flat := FlattenImage(img)
+		flat := FlattenImage(img, Config{})
 
 		// convert image to zpl compatible type
 		switch graphictype {

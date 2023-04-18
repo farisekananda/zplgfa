@@ -7,10 +7,18 @@ import (
 	"image/color"
 	"math"
 	"strings"
+
+	"github.com/nfnt/resize"
 )
 
 // GraphicType is a type to select the graphic format
 type GraphicType int
+
+type Config struct {
+	Scale       float64
+	Darkness    float64
+	ImageConfig image.Config
+}
 
 const (
 	// ASCII graphic type using only hex characters (0-9A-F)
@@ -21,6 +29,18 @@ const (
 	CompressedASCII
 )
 
+func (c *Config) setDefaultConfig() {
+	c.Scale = math.Max(0.0, math.Min(1.0, c.Scale))
+	c.Darkness = math.Max(0.0, math.Min(1.0, c.Darkness))
+
+	if c.Scale == 0.0 {
+		c.Scale = 1.0
+	}
+	if c.Darkness == 0.0 {
+		c.Darkness = 0.1
+	}
+}
+
 // ConvertToZPL is just a wrapper for ConvertToGraphicField which also includes the ZPL
 // starting code ^XA and ending code ^XZ, as well as a Field Separator and Field Origin.
 func ConvertToZPL(img image.Image, graphicType GraphicType) string {
@@ -28,28 +48,35 @@ func ConvertToZPL(img image.Image, graphicType GraphicType) string {
 }
 
 // FlattenImage optimizes an image for the converting process
-func FlattenImage(source image.Image) *image.NRGBA {
+func FlattenImage(source image.Image, config Config) *image.NRGBA {
+	config.setDefaultConfig()
+
+	// Resize image
+	if config.Scale != 1.0 && config.ImageConfig != (image.Config{}) {
+		source = resize.Resize(uint(float64(config.ImageConfig.Width)*config.Scale), uint(float64(config.ImageConfig.Height)*config.Scale), source, resize.Lanczos3)
+	}
+
 	size := source.Bounds().Size()
 	background := color.White
 	target := image.NewNRGBA(source.Bounds())
 	for y := 0; y < size.Y; y++ {
 		for x := 0; x < size.X; x++ {
 			p := source.At(x, y)
-			flat := flatten(p, background)
+			flat := flatten(p, background, config.Darkness)
 			target.Set(x, y, flat)
 		}
 	}
 	return target
 }
 
-func flatten(input color.Color, background color.Color) color.Color {
+func flatten(input color.Color, background color.Color, darkness float64) color.Color {
 	source := color.NRGBA64Model.Convert(input).(color.NRGBA64)
 	r, g, b, a := source.RGBA()
 	bgR, bgG, bgB, _ := background.RGBA()
 	alpha := float32(a) / 0xffff
 	conv := func(c uint32, bg uint32) uint8 {
 		val := 0xffff - uint32((float32(bg) * alpha))
-		val = val | uint32(float32(c)*alpha)
+		val = val | uint32(float32(c)*alpha*float32(1.0-darkness))
 		return uint8(val >> 8)
 	}
 	c := color.NRGBA{
