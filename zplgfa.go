@@ -15,6 +15,8 @@ import (
 type GraphicType int
 
 type Config struct {
+	MaxWidth    int
+	MaxHeight   int
 	Scale       float64
 	Darkness    float64
 	ImageConfig image.Config
@@ -53,7 +55,14 @@ func FlattenImage(source image.Image, config Config) *image.NRGBA {
 
 	// Resize image
 	if config.Scale != 1.0 && config.ImageConfig != (image.Config{}) {
-		source = resize.Resize(uint(float64(config.ImageConfig.Width)*config.Scale), uint(float64(config.ImageConfig.Height)*config.Scale), source, resize.Lanczos3)
+		var targetWidth, targetHeight uint
+		if config.ImageConfig.Width >= config.ImageConfig.Height {
+			targetWidth = uint(math.Max(float64(config.ImageConfig.Width)*config.Scale, float64(config.MaxWidth)))
+		} else {
+			targetHeight = uint(math.Max(float64(config.ImageConfig.Height)*config.Scale, float64(config.MaxHeight)))
+		}
+
+		source = resize.Resize(targetWidth, targetHeight, source, resize.Lanczos3)
 	}
 
 	size := source.Bounds().Size()
