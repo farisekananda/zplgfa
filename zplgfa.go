@@ -15,11 +15,11 @@ import (
 type GraphicType int
 
 type Config struct {
-	MaxWidth    int
-	MaxHeight   int
-	Scale       float64
-	Darkness    float64
-	ImageConfig image.Config
+	MaxWidth    int          `json:"max_width"`
+	MaxHeight   int          `json:"max_height"`
+	Scale       float64      `json:"scale"`
+	Darkness    float64      `json:"darkness"`
+	ImageConfig image.Config `json:"-"`
 }
 
 const (
