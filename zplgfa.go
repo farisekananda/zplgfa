@@ -57,9 +57,9 @@ func FlattenImage(source image.Image, config Config) *image.NRGBA {
 	if config.Scale != 1.0 && config.ImageConfig != (image.Config{}) {
 		var targetWidth, targetHeight uint
 		if config.ImageConfig.Width >= config.ImageConfig.Height {
-			targetWidth = uint(math.Max(float64(config.ImageConfig.Width)*config.Scale, float64(config.MaxWidth)))
+			targetWidth = uint(math.Min(float64(config.ImageConfig.Width)*config.Scale, float64(config.MaxWidth)))
 		} else {
-			targetHeight = uint(math.Max(float64(config.ImageConfig.Height)*config.Scale, float64(config.MaxHeight)))
+			targetHeight = uint(math.Min(float64(config.ImageConfig.Height)*config.Scale, float64(config.MaxHeight)))
 		}
 
 		source = resize.Resize(targetWidth, targetHeight, source, resize.Lanczos3)
