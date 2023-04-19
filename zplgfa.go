@@ -32,7 +32,7 @@ const (
 )
 
 func (c *Config) setDefaultConfig() {
-	c.Scale = math.Max(0.0, math.Min(1.0, c.Scale))
+	c.Scale = math.Max(0.0, c.Scale)
 	c.Darkness = math.Max(0.0, math.Min(1.0, c.Darkness))
 
 	if c.Scale == 0.0 {
